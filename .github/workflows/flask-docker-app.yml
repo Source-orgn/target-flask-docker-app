@@ -1,0 +1,27 @@
+name: rani-ukamble-group/flask-docker-app
+on:
+  push:
+  workflow_dispatch:
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: true
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: docker:latest
+    timeout-minutes: 60
+    services:
+      docker:dind:
+        image: docker:dind
+    env:
+      DOCKER_DRIVER: overlay2
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 20
+        lfs: true
+    - run: apk update && apk add git
+    - run: git --version
+    - run: docker build -t flask-docker-app .
+    - run: docker run -d -p 5000:5000 flask-docker-app
